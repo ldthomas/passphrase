@@ -593,8 +593,8 @@
         if (shortWords && diceWords) return;
         try {
           const [sResp, dResp] = await Promise.all([
-            fetch("../data/short-words.txt"),
-            fetch("../data/diceware-words.txt"),
+            fetch("./data/short-words.txt"),
+            fetch("./data/diceware-words.txt"),
           ]);
           const [sText, dText] = await Promise.all([
             sResp.text(),

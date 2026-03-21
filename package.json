@@ -1,0 +1,31 @@
+{
+  "name": "phrasegen",
+  "version": "1.0.0",
+  "description": "Secure multi-passphrase generator.",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --silent --coverage",
+    "jest": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "jsdoc": "jsdoc -c jsdoc.json"
+  },
+  "devDependencies": {
+    "jest": "^30.0.0",
+    "jsdoc": "^4.0.5"
+  },
+  "homepage": "https://github.com/ldthomas/phrasegen#readme",
+  "bugs": {
+    "url": "https://github.com/ldthomas/phrasegen/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ldthomas/phrasegen.git"
+  },
+  "license": "MIT",
+  "author": "Lowell D. Thomas",
+  "keywords": [
+    "passphrase",
+    "password",
+    "entropy",
+    "generator"
+  ]
+}

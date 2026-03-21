@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Multi-Passphrase Generator</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          Arial,
+          sans-serif;
+        margin: 0;
+        padding: 32px 24px;
+        background: #f4f6f9;
+        color: #1e293b;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 8px;
+        color: #0f172a;
+      }
+      h2 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 24px 0 8px;
+      }
+      p,
+      section {
+        max-width: 680px;
+        font-size: 0.95rem;
+        color: #475569;
+      }
+      a {
+        color: #2563eb;
+      }
+      sup a {
+        text-decoration: none;
+      }
+      code {
+        background: #e2e8f0;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+      label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #334155;
+      }
+      input[type="number"] {
+        width: 72px;
+        padding: 6px 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        background: #fff;
+        color: #1e293b;
+      }
+      input[type="number"]:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 1px;
+        border-color: #3b82f6;
+      }
+      input[type="checkbox"] {
+        accent-color: #2563eb;
+        width: 16px;
+        height: 16px;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        background: #fff;
+        padding: 14px 18px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        margin-top: 16px;
+      }
+      button {
+        padding: 7px 18px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      button#generate {
+        background: #2563eb;
+        color: #fff;
+      }
+      button#generate:hover {
+        background: #1d4ed8;
+      }
+      button#print:disabled {
+        background: #e2e8f0;
+        color: #94a3b8;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      button#print:not(:disabled) {
+        background: #2563eb;
+        color: #fff;
+      }
+      button#print:not(:disabled):hover {
+        background: #1d4ed8;
+      }
+      table {
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 20px;
+        width: 100%;
+        table-layout: fixed;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+      col.col-method {
+        width: 22%;
+      }
+      col.col-chars {
+        width: 12%;
+      }
+      col.col-entropy {
+        width: 9%;
+      }
+      col.col-phrase {
+        width: 57%;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #e2e8f0;
+        padding: 10px 12px;
+        text-align: left;
+        word-break: break-all;
+        overflow-wrap: anywhere;
+      }
+      td:not(:last-child),
+      th:not(:last-child) {
+        border-right: 1px solid #f1f5f9;
+      }
+      th {
+        background: #f8fafc;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:hover {
+        background: #f8fafc;
+      }
+      .phrase-entry {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        position: relative;
+      }
+      .copy-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.15s;
+        color: #64748b;
+        flex-shrink: 0;
+      }
+      .phrase-entry:hover .copy-btn {
+        opacity: 1;
+      }
+      .copy-btn:hover {
+        color: #2563eb;
+      }
+      .copy-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+      section {
+        margin-top: 20px;
+      }
+
+      @media print {
+        @page {
+          size: landscape;
+          margin: 1cm;
+        }
+        body {
+          padding: 0;
+          font-size: 9pt;
+          background: #fff;
+        }
+        .container {
+          max-width: none;
+        }
+        h1,
+        h1 + p,
+        .controls,
+        section {
+          display: none;
+        }
+        .copy-btn {
+          display: none;
+        }
+        table {
+          width: 100%;
+          table-layout: fixed;
+          font-size: 11pt;
+          box-shadow: none;
+          border-radius: 0;
+        }
+        col.col-method {
+          width: 20%;
+        }
+        col.col-chars {
+          width: 12%;
+        }
+        col.col-entropy {
+          width: 8%;
+        }
+        col.col-phrase {
+          width: 60%;
+        }
+        th,
+        td {
+          padding: 3px 5px;
+          word-break: break-all;
+          overflow-wrap: anywhere;
+        }
+        code {
+          font-size: 11pt;
+        }
+        section {
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Multi-Passphrase Generator</h1>
+      <p>
+        With one click generate <code>Count</code> passphrases for each of six
+        different methods. Each passphrase will have a minimum entropy of
+        <code>Entropy floor</code>. If the <code>Suffix</code> box is checked a
+        short suffix will be added, if necessary, to complete the character
+        classes, upper case, lower case, number and symbol. To copy any
+        passphrase to the clipboard, mouse over and click the
+        <code>copy</code> icon. Use the <code>Print</code> button (or
+        <code>Ctrl+P</code>) to print the entire table. See the
+        <a href="#methods-notes">methods</a> and
+        <a href="#suffix-note"><code>Suffix</code></a> notes for further
+        details. For a general discussion of passphrase hygiene see one or more
+        of these references<sup
+          ><a href="#hygiene-refs"><strong>1</strong></a></sup
+        >
+      </p>
+      <p>
+        <em
+          >All passphrases are computed locally and never transmitted over the
+          network.</em
+        >
+      </p>
+
+      <div class="controls">
+        <label
+          >Entropy floor
+          <input id="threshold" type="number" min="1" value="80" />
+        </label>
+
+        <label
+          >Count
+          <input
+            id="np"
+            type="number"
+            min="1"
+            max="20"
+            value="3"
+            style="width: 60px"
+          />
+        </label>
+
+        <label
+          >Suffix
+          <input id="suffix" type="checkbox" checked />
+        </label>
+
+        <button id="generate">Generate</button>
+        <button id="print" disabled onclick="window.print()">Print</button>
+      </div>
+
+      <table aria-label="results">
+        <colgroup>
+          <col class="col-method" />
+          <col class="col-chars" />
+          <col class="col-entropy" />
+          <col class="col-phrase" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Characters</th>
+            <th>Entropy</th>
+            <th>Passphrase</th>
+          </tr>
+        </thead>
+        <tbody id="results"></tbody>
+      </table>
+
+      <section id="entropy-note">
+        <h2>Entropy</h2>
+        <p>
+          Entropy here is <em>combinatorial entropy</em>, measured in bits:
+          &nbsp;<strong>H&nbsp;=&nbsp;log&#8322;(N)</strong>, where N is the
+          total number of equally-likely outcomes. It represents the size of the
+          search space an attacker must exhaust and is the standard measure for
+          evaluating randomly generated passwords and passphrases.
+        </p>
+        <p>
+          Entropy is always calculated here using the worst-case scenario. That
+          is, the attacker knows the algorithms, the code and the word lists.
+          Only the random selections are unknown. This leads to significantly
+          lower entropy than if calculated using only character length. This
+          implementation uses JavaScript's
+          <code>crypto.getRandomValues()</code> for all random selections which
+          provides a uniform randomness essentially indistinquishable from a
+          truely random source.<sup
+            ><a href="#ref-1"><strong>2</strong></a></sup
+          >
+        </p>
+        <p>
+          How much entropy is enough? The general consensus is that to protect
+          against offline attacks 80-100 bits are needed.<sup
+            ><a href="#entropy-refs"><strong>3</strong></a></sup
+          >
+        </p>
+      </section>
+      <section id="suffix-note">
+        <h2>Suffix</h2>
+        <p>
+          Many login systems require a passphrase to contain at least one
+          character from each of four character classes: uppercase letter,
+          lowercase letter, digit, and symbol. Checking the
+          <code>Suffix</code> box appends a suffix when any class is missing.
+          The suffix consists of a hyphen followed by one character drawn from
+          each absent class, shuffled into a random order — for example, if the
+          passphrase were <code>xyz</code> (lowercase only), the suffix might be
+          <code>-1A</code> or <code>-A1</code>. The hyphen serves double duty as
+          both a word separator and the required symbol character. (See each
+          method below for its specific suffix rules.)
+        </p>
+        <p>
+          While the suffix does add a small amount of entropy to the passphrase,
+          it's purpose here is simply to complete a character class requirement
+          when necessary.
+        </p>
+      </section>
+      <section id="methods-notes">
+        <h2>Methods</h2>
+        <h3>Vowel/Consonant Words</h3>
+        <p>
+          The idea of using passphrases instead of passwords to increase
+          memorabilty dates back to the 1960s and the idea of using
+          pronouncable, nonsense syllables using alternating vowels and
+          consonants dates back to at least 1970<sup
+            ><a href="#winograd"><strong>4</strong></a></sup
+          >
+          This implementation uses pseudo-words constructed from alternating
+          vowels and consonants. Five characters per word seems to be the sweet
+          spot for the length vs pronouncablity tradeoff but that can be
+          adjusted here.
+          <br /><br />
+          Word length
+          <input
+            id="wordlen"
+            type="number"
+            min="2"
+            max="50"
+            value="5"
+            style="width: 60px; vertical-align: middle"
+          />
+          (2–50) controls the length of each word.
+        </p>
+        <h3>Diceware Words</h3>
+        <p>
+          While word pool generators date to the 1960s, Arnold Reinhold's
+          Diceware<sup
+            ><a href="#reinhold"><strong>5</strong></a></sup
+          >
+          generator has today become the de facto standard. Since
+          <code>crypto.getRandomValues()</code> and
+          <code>/dev/urandom</code> have become reliable, software has been able
+          to replace the dice. This implementation uses the Electronic Frontier
+          Foundation (EFF) long wordlist<sup
+            ><a href="#eff"><strong>6</strong></a></sup
+          >. With 7776 words it provides 12.9 bits of entropy per word.
+        </p>
+        <h3>Short Words (3-6 chars)</h3>
+        <p>
+          Diceware passphrases need seven words to exceed 80 bits of entropy,
+          resulting in passphrases of 47–65 characters or more. A curated list
+          of shorter words achieves the same entropy while keeping passphrases
+          noticeably more compact.
+        </p>
+        <p>
+          This list is drawn from
+          <a href="https://wordnet.princeton.edu/"
+            >WordNet: A Lexical Database for English</a
+          >, taking the top 6,000 entries from each of the adjective, adverb,
+          noun, and verb lists. The combined pool was then filtered to words of
+          three to six characters, and personally curated to remove ethnonyms,
+          demonyms, and anything political, religious, expletive, or otherwise
+          family-unfriendly. The resulting list contains 9,828 words, yielding
+          <strong>13.24 bits of entropy per word</strong>
+          — slightly more than Diceware's 12.92.
+        </p>
+        <p>
+          A seven-word passphrase from this list delivers
+          <strong>92.68 bits of entropy</strong> versus Diceware's 90.47, while
+          staying far shorter: typically only 24–48 characters compared to
+          Diceware's 47–65.
+        </p>
+        <h3>Random Phrase</h3>
+        <p>
+          This method draws characters uniformly at random from a pool of
+          letters, digits, and symbols, while guaranteeing that the result
+          contains at least one character from each class. The symbol set is
+          restricted to <code>!#$%&*+-=?^_~()[]{}|</code> (20 characters),
+          omitting those most likely to cause problems in shells, SQL, HTML, and
+          connection strings.
+        </p>
+        <p>
+          The entropy formula is
+          <code
+            >log<sub>2</sub>(10&thinsp;&times;&thinsp;26&thinsp;&times;&thinsp;26&thinsp;&times;&thinsp;20&thinsp;&times;&thinsp;82<sup>n&minus;4</sup>)</code
+          >, where <code>n</code> is the total number of characters. The four
+          factors before the exponent reflect the guaranteed characters: one
+          digit (10&nbsp;choices), one uppercase letter (26), one lowercase
+          letter (26), and one symbol (20). The remaining
+          <code>n&minus;4</code> characters are drawn freely from the full
+          82-character pool (62&nbsp;alphanumeric + 20&nbsp;symbols), each
+          contributing <code>log<sub>2</sub>(82)&nbsp;&approx;&nbsp;6.36</code>
+          bits.
+        </p>
+        <h3>Random Bytes</h3>
+        <p>
+          A byte encodes exactly 8 bits of entropy, so for an 80-bit floor only
+          10 bytes are needed. Because raw bytes must be rendered as printable
+          ASCII to serve as a passphrase, two encodings are offered. Note that
+          different classes of random bytes, <code>FF</code> and
+          <code>00</code> for example, will result in different types of
+          suffixes, seriously complicating the suffix entropy computation. While
+          computationaly possible, the entropy contribution of this suffix is
+          small and considered negligible and therefore not included.
+        </p>
+        <h4>Random Bytes (base64)</h4>
+        <p>
+          This method encodes the same bytes using Base64. For a given entropy
+          floor (without a suffix) it normally produces a passphrase of equal
+          length to the Random Phrase method. Its advantage, if any, is that it
+          is, arguably, easier on the eye and easier to type. Because Base64
+          draws from both letters, digits, and the
+          <code>+</code> and <code>/</code> characters, the output frequently
+          satisfies all four character-class requirements on its own, making a
+          suffix unnecessary.
+        </p>
+        <h4>Random Bytes (hex)</h4>
+        <p>
+          This method encodes the bytes as uppercase hexadecimal. Since hex uses
+          only digits (<code>0</code>–<code>9</code>) and uppercase letters
+          (<code>A</code>–<code>F</code>), a suffix is nearly always needed to
+          supply a lowercase letter; the leading hyphen covers the symbol class,
+          yielding a suffix of the form <code>-a</code>.
+        </p>
+      </section>
+      <section>
+        <h3>References</h3>
+        <p id="hygiene-refs">
+          <sup><strong>1</strong></sup>
+          <a
+            href="https://www.cyber.gc.ca/sites/default/files/cyber/publications/ITSAP.30.32%20-en.pdf"
+            >https://www.cyber.gc.ca/sites/default/files/cyber/publications/ITSAP.30.32%20-en.pdf</a
+          ><br />
+          <a
+            href="https://www.howtogeek.com/how-good-password-hygiene-keeps-you-safe/"
+            >https://www.howtogeek.com/how-good-password-hygiene-keeps-you-safe/</a
+          ><br />
+          <a
+            href="https://www.keepersecurity.com/blog/2024/07/23/password-hygiene-tips-and-best-practices/"
+            >https://www.keepersecurity.com/blog/2024/07/23/password-hygiene-tips-and-best-practices/</a
+          >
+        </p>
+        <p id="ref-1">
+          <sup><strong>2</strong></sup>
+          <a
+            href="https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues"
+            >https://www.w3.org/TR/WebCryptoAPI/#Crypto-method-getRandomValues</a
+          ><br />
+          <a
+            href="https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues"
+            >https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues</a
+          ><br />
+          <a
+            href="https://csrc.nist.gov/publications/detail/sp/800-90a/rev-1/final"
+            >https://csrc.nist.gov/publications/detail/sp/800-90a/rev-1/final</a
+          >
+        </p>
+        <p id="entropy-refs">
+          <sup><strong>3</strong></sup>
+          <a href="https://pages.nist.gov/800-63-3/sp800-63b.html"
+            >https://pages.nist.gov/800-63-3/sp800-63b.html</a
+          ><br />
+          The EFF Diceware list contains 7776 words, providing approximately
+          12.9 bits of entropy per word. A six word passphrase therefore
+          contains about 77 bits of entropy; seven words contain about 90 bits.
+          <a href="https://diceware.readme.io/docs/faqa"
+            >https://diceware.readme.io/docs/faqa</a
+          ><br />
+        </p>
+        <p id="winograd">
+          <sup><strong>4</strong></sup
+          >A. F. T. Winograd, “On the Security of Passwords,” MITRE Technical
+          Report MTR‑2547, 1970
+        </p>
+        <p id="reinhold">
+          <a href="https://theworld.com/~reinhold/diceware.html">
+            <sup><strong>5</strong></sup
+            >https://theworld.com/~reinhold/diceware.html
+          </a>
+        </p>
+        <p id="eff">
+          <a href="https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt">
+            <sup><strong>6</strong></sup
+            >https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt
+          </a>
+        </p>
+      </section>
+    </div>
+    <script type="module">
+      import {
+        randomBytes,
+        randomPhrase,
+        vcWords,
+        randomWords,
+      } from "./src/thresholds.js";
+
+      // word lists (loaded asynchronously). fall back to demo words on error
+      let shortWords = null;
+      let diceWords = null;
+      const DEMO_WORDS = [
+        "alpha",
+        "bravo",
+        "charlie",
+        "delta",
+        "echo",
+        "foxtrot",
+        "golf",
+        "hotel",
+      ];
+
+      async function loadWordlists() {
+        if (shortWords && diceWords) return;
+        try {
+          const [sResp, dResp] = await Promise.all([
+            fetch("../data/short-words.txt"),
+            fetch("../data/diceware-words.txt"),
+          ]);
+          const [sText, dText] = await Promise.all([
+            sResp.text(),
+            dResp.text(),
+          ]);
+          shortWords = sText.trim().split(/\s+/);
+          diceWords = dText.trim().split(/\s+/);
+        } catch (e) {
+          console.warn("Failed to load wordlists, using demo words:", e);
+          shortWords = DEMO_WORDS.slice();
+          diceWords = DEMO_WORDS.slice();
+        }
+      }
+
+      const $threshold = document.getElementById("threshold");
+      const $np = document.getElementById("np");
+      const $wordlen = document.getElementById("wordlen");
+      const $suffix = document.getElementById("suffix");
+      const $generate = document.getElementById("generate");
+      const $print = document.getElementById("print");
+      const $results = document.getElementById("results");
+
+      // Reset all controls to their defaults on every page load so that
+      // the browser's form-restore behaviour does not persist stale values.
+      $threshold.value = 80;
+      $np.value = 3;
+      $wordlen.value = 5;
+      $suffix.checked = false;
+      $print.disabled = true;
+      $results.innerHTML = "";
+
+      function clearResults() {
+        $results.innerHTML = "";
+        $print.disabled = true;
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "p" && $print.disabled) {
+          e.preventDefault();
+        }
+      });
+
+      function appendLine(td, text, asCode) {
+        if (td.childNodes.length > 0)
+          td.appendChild(document.createElement("br"));
+        if (asCode) {
+          const span = document.createElement("span");
+          span.className = "phrase-entry";
+          const code = document.createElement("code");
+          code.textContent = text;
+          span.appendChild(code);
+          const btn = document.createElement("button");
+          btn.className = "copy-btn";
+          btn.type = "button";
+          btn.title = "Copy to clipboard";
+          btn.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>' +
+            '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          btn.addEventListener("click", () => {
+            navigator.clipboard.writeText(text).then(() => {
+              btn.innerHTML =
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<polyline points="20 6 9 17 4 12"/></svg>';
+              setTimeout(() => {
+                btn.innerHTML =
+                  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                  '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>' +
+                  '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+              }, 1500);
+            });
+          });
+          span.appendChild(btn);
+          td.appendChild(span);
+        } else {
+          td.appendChild(document.createTextNode(text));
+        }
+      }
+
+      function addRow(name, np, gen) {
+        const tr = document.createElement("tr");
+        const nameTd = document.createElement("td");
+        nameTd.textContent = name;
+        tr.appendChild(nameTd);
+        const charsTd = document.createElement("td");
+        const entropyTd = document.createElement("td");
+        const phraseTd = document.createElement("td");
+        for (let i = 0; i < np; i++) {
+          try {
+            const r = gen();
+            appendLine(charsTd, String(r.chars), false);
+            appendLine(entropyTd, String(r.entropy), false);
+            appendLine(phraseTd, r.phrase, true);
+          } catch (e) {
+            appendLine(charsTd, "-", false);
+            appendLine(entropyTd, "-", false);
+            appendLine(phraseTd, String(e), false);
+          }
+        }
+        tr.appendChild(charsTd);
+        tr.appendChild(entropyTd);
+        tr.appendChild(phraseTd);
+        $results.appendChild(tr);
+      }
+
+      async function generate() {
+        clearResults();
+        const thresh = Math.max(1, Math.floor(Number($threshold.value) || 1));
+        const wordlen = Math.min(
+          50,
+          Math.max(2, Math.floor(Number($wordlen.value) || 5)),
+        );
+        const suffix = Boolean($suffix.checked);
+        const np = Math.max(
+          1,
+          Math.min(20, Math.floor(Number($np.value) || 1)),
+        );
+        await loadWordlists();
+
+        const generators = [
+          {
+            name: "Vowel/Consonant Words",
+            gen: () => {
+              const vc = vcWords(wordlen, thresh, suffix);
+              return {
+                phrase: vc.phrase,
+                chars: vc.phrase.length,
+                entropy: vc.entropy,
+              };
+            },
+          },
+          {
+            name: "Diceware Words",
+            gen: () => {
+              const rw = randomWords(diceWords, thresh, suffix);
+              return {
+                phrase: rw.phrase,
+                chars: rw.phrase.length,
+                entropy: rw.entropy,
+              };
+            },
+          },
+          {
+            name: "Short Words (3-6 chars)",
+            gen: () => {
+              const rw = randomWords(shortWords, thresh, suffix);
+              return {
+                phrase: rw.phrase,
+                chars: rw.phrase.length,
+                entropy: rw.entropy,
+              };
+            },
+          },
+          {
+            name: "Random Phrase",
+            gen: () => {
+              const rp = randomPhrase(thresh);
+              return {
+                phrase: rp.phrase,
+                chars: rp.phrase.length,
+                entropy: rp.entropy,
+              };
+            },
+          },
+          {
+            name: "Random Bytes (base64)",
+            gen: () => {
+              const rb = randomBytes(thresh, suffix);
+              return {
+                phrase: rb.base64,
+                chars: rb.base64.length,
+                entropy: rb.entropyB64,
+              };
+            },
+          },
+          {
+            name: "Random Bytes (hex)",
+            gen: () => {
+              const rb = randomBytes(thresh, suffix);
+              return {
+                phrase: rb.hex,
+                chars: rb.hex.length,
+                entropy: rb.entropyHex,
+              };
+            },
+          },
+        ];
+
+        for (const { name, gen } of generators) {
+          addRow(name, np, gen);
+        }
+        $print.disabled = false;
+      }
+
+      $generate.addEventListener("click", generate);
+    </script>
+  </body>
+</html>

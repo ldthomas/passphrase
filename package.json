@@ -1,5 +1,5 @@
 {
-  "name": "phrasegen",
+  "name": "passphrase",
   "version": "1.0.0",
   "description": "Secure multi-passphrase generator.",
   "type": "module",

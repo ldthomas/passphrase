@@ -12,13 +12,13 @@
     "jest": "^30.0.0",
     "jsdoc": "^4.0.5"
   },
-  "homepage": "https://github.com/ldthomas/phrasegen#readme",
+  "homepage": "https://github.com/ldthomas/passphrase",
   "bugs": {
-    "url": "https://github.com/ldthomas/phrasegen/issues"
+    "url": "https://github.com/ldthomas/passphrase/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ldthomas/phrasegen.git"
+    "url": "git+https://github.com/ldthomas/passphrase"
   },
   "license": "MIT",
   "author": "Lowell D. Thomas",

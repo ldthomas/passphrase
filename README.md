@@ -4,7 +4,8 @@ With one click generate **Count** passphrases for each of six different methods.
 
 _All passphrases are computed locally and never transmitted over the network._
 
-[Documentation](#documentation)
+View the Multi-Passphrase Generator [here](https://ldthomas.github.io/passphrase/).<br />
+See the source code documentation [here](#documentation).
 
 ## Controls
 
@@ -85,10 +86,10 @@ This method encodes the bytes as uppercase hexadecimal. Since hex uses only digi
 
 ## Documentation
 
-Documentation is in the code in JSDoc format. Use:
+The documentation is in the code in JSDoc format. Use:
 
 ```
 npm run jsdoc
 ```
 
-The documentation will be at `./docs/index.html`.
+Then view the documentation at `./docs/index.html`.
